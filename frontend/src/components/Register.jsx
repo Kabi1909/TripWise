@@ -1,12 +1,14 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
-export default function Register({ setView }) {
+export default function Register() {
   const [role, setRole] = useState('Traveler');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +21,7 @@ export default function Register({ setView }) {
       const data = await res.json();
       if (res.ok) {
         login(data);
-        setView(data.role === 'Travel Agent' ? 'agent' : 'colombo');
+        navigate(data.role === 'Travel Agent' ? '/agent' : '/colombo');
       } else {
         alert(data.message || 'Registration failed');
       }
@@ -120,7 +122,7 @@ export default function Register({ setView }) {
             Already have an account?{' '}
             <button 
               type="button"
-              onClick={() => setView('login')} 
+              onClick={() => navigate('/login')} 
               className="text-[#0058bc] hover:underline font-medium"
             >
               Log in

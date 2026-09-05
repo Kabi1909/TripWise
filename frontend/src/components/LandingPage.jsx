@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Calendar, Users } from 'lucide-react';
 
 export default function LandingPage() {
@@ -18,12 +18,14 @@ export default function LandingPage() {
         <span className="text-[22px] font-bold text-[#0058bc]">WiseTravel</span>
         <div className="flex items-center gap-3">
           <button 
+            type="button"
             onClick={() => navigate('/login')} 
             className="text-[13px] font-medium text-[#0058bc] px-4 py-2 hover:bg-[#f3f3f8] rounded-full transition-colors"
           >
             Log In
           </button>
           <button 
+            type="button"
             onClick={() => navigate('/register')} 
             className="text-[13px] font-medium bg-[#0058bc] text-white px-4 py-2 rounded-full hover:bg-[#004493] shadow-sm transition-colors"
           >
@@ -59,7 +61,11 @@ export default function LandingPage() {
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717786]" size={18} />
               <input type="text" placeholder="Travelers" className="w-full bg-white rounded-lg py-3 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0058bc]" />
             </div>
-            <button onClick={() => navigate('/register')} className="w-full md:w-auto bg-[#0058bc] hover:bg-[#004493] text-white font-bold px-8 py-3 rounded-lg text-sm transition-all whitespace-nowrap">
+            <button 
+              type="button"
+              onClick={() => navigate('/register')} 
+              className="w-full md:w-auto bg-[#0058bc] hover:bg-[#004493] text-white font-bold px-8 py-3 rounded-lg text-sm transition-all whitespace-nowrap"
+            >
               Search
             </button>
           </div>
@@ -93,9 +99,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-[13px] text-[#414755]">
           <span className="font-bold text-[#1a1c1f]">WiseTravel</span>
           <div className="flex gap-4 my-2 md:my-0">
-            <Link to="/" className="hover:text-[#0058bc]">Help Center</Link>
-            <Link to="/" className="hover:text-[#0058bc]">Terms of Service</Link>
-            <Link to="/" className="hover:text-[#0058bc]">Privacy Policy</Link>
+            <a href="#" className="hover:text-[#0058bc]">Help Center</a>
+            <a href="#" className="hover:text-[#0058bc]">Terms of Service</a>
+            <a href="#" className="hover:text-[#0058bc]">Privacy Policy</a>
           </div>
           <span>© 2026 WiseTravel AI. All rights reserved.</span>
         </div>
