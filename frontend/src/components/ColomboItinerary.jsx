@@ -2,16 +2,35 @@ import React, { useEffect, useState } from 'react';
 import { SunMedium, ArrowRight, Utensils, Compass } from 'lucide-react';
 
 export default function ColomboItinerary() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState({
+    title: "Colombo Masterclass",
+    client: "Neha",
+    clientType: "VIP Client",
+    activeDayText: "Day 3 of 7",
+    highlightTitle: "Exploring the Fort District",
+    highlightDescription: "Guided tour through colonial architecture, followed by a culinary masterclass at the Ministry of Crab.",
+    weather: {
+      temp: "31°C",
+      city: "Colombo",
+      tip: "Monsoon season approaching. Advise client to carry an umbrella."
+    },
+    exchangeRate: {
+      base: "1 USD",
+      rate: "315 LKR"
+    },
+    schedule: [
+      { time: "09:00 AM", title: "Breakfast at Galle Face Hotel", description: "Colonial ocean-view dining veranda", status: "past" },
+      { time: "11:30 AM (Now)", title: "Fort District Guided Walk", description: "Meeting guide at the Dutch Hospital Precinct.", status: "active" },
+      { time: "14:00 PM", title: "Ministry of Crab Masterclass", description: "Exclusive culinary session with Chef Dharshan", status: "upcoming" }
+    ]
+  });
 
   useEffect(() => {
     fetch('http://localhost:5000/api/itinerary/colombo')
       .then(res => res.json())
-      .then(d => setData(d))
-      .catch(console.error);
+      .then(d => { if (d && d.title) setData(d); })
+      .catch(() => {});
   }, []);
-
-  if (!data) return <div className="p-10 text-center md:ml-64">Loading Colombo Masterclass...</div>;
 
   return (
     <main className="flex-1 md:ml-64 p-6 md:p-8 bg-[#f9f9fe] min-h-screen font-['Inter']">
@@ -39,7 +58,7 @@ export default function ColomboItinerary() {
           <img 
             src="https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?w=1000&auto=format&fit=crop&q=80" 
             alt="Colombo Lotus Tower and Skyline" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover" 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
           <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
@@ -54,7 +73,7 @@ export default function ColomboItinerary() {
               <h3 className="text-[28px] font-bold mb-1">{data.highlightTitle}</h3>
               <p className="text-[15px] text-white/90 max-w-lg">{data.highlightDescription}</p>
             </div>
-            <button className="bg-[#0058bc] hover:bg-[#004493] text-white px-4 py-2.5 rounded-lg text-[15px] font-semibold flex items-center gap-2 shadow-lg">
+            <button className="bg-[#0058bc] hover:bg-[#004493] text-white px-4 py-2.5 rounded-lg text-[15px] font-semibold flex items-center gap-2 shadow-lg transition-colors">
               View Details <ArrowRight size={16} />
             </button>
           </div>
@@ -133,14 +152,14 @@ export default function ColomboItinerary() {
         <div className="lg:col-span-4 bg-white rounded-xl p-6 shadow-sm border border-[#e2e2e7]">
           <h4 className="text-[22px] font-bold text-[#1a1c1f] mb-4">Recently Viewed</h4>
           <div className="space-y-3">
-            <div className="flex items-center gap-3 p-2 hover:bg-[#f3f3f8] rounded-lg cursor-pointer">
+            <div className="flex items-center gap-3 p-2 hover:bg-[#f3f3f8] rounded-lg cursor-pointer transition-colors">
               <img src="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=100&auto=format&fit=crop&q=80" alt="Maldives" className="w-12 h-12 rounded object-cover" />
               <div>
                 <p className="text-[15px] font-semibold text-[#1a1c1f]">Maldives Retreat</p>
                 <p className="text-[11px] text-[#414755]">Client: The Smiths</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-2 hover:bg-[#f3f3f8] rounded-lg cursor-pointer">
+            <div className="flex items-center gap-3 p-2 hover:bg-[#f3f3f8] rounded-lg cursor-pointer transition-colors">
               <div className="w-12 h-12 rounded bg-[#f3f3f8] flex items-center justify-center text-[#414755]">
                 <Compass size={22} />
               </div>
@@ -150,10 +169,11 @@ export default function ColomboItinerary() {
               </div>
             </div>
           </div>
-          <button className="mt-4 w-full py-2 text-center text-[#0058bc] text-[13px] font-medium hover:bg-[#0058bc]/5 rounded-lg">View All History</button>
+          <button className="mt-4 w-full py-2 text-center text-[#0058bc] text-[13px] font-medium hover:bg-[#0058bc]/5 rounded-lg transition-colors">
+            View All History
+          </button>
         </div>
       </div>
     </main>
   );
 } 
-

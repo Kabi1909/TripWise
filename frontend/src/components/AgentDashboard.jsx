@@ -2,19 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { Search, Bell, HelpCircle, Settings, Plane, CreditCard, UserPlus, MoreVertical, MessageSquare, Edit3 } from 'lucide-react';
 
 export default function AgentDashboard() {
-  const [bookings, setBookings] = useState([]);
-  const [messages, setMessages] = useState([]);
+  const [bookings, setBookings] = useState([
+    { clientInitials: "JD", clientName: "John Doe", destination: "Kyoto, Japan", dates: "Nov 12 - Nov 20", status: "Confirmed" },
+    { clientInitials: "AS", clientName: "Alice Smith", destination: "Paris, France", dates: "Dec 05 - Dec 10", status: "Pending Payment" },
+    { clientInitials: "BW", clientName: "Bruce Wayne", destination: "Maldives", dates: "Jan 15 - Jan 25", status: "Confirmed" },
+    { clientInitials: "CK", clientName: "Clark Kent", destination: "Reykjavik, Iceland", dates: "Oct 26 - Nov 02", status: "Action Required" }
+  ]);
+
+  const [messages, setMessages] = useState([
+    { senderInitials: "CK", senderName: "Clark Kent", time: "10:42 AM", message: "Is the flight confirmed? The portal still says pending." },
+    { senderInitials: "AS", senderName: "Alice Smith", time: "Yesterday", message: "Thank you for the recommendations! We'll go with option B." }
+  ]);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/bookings')
       .then(res => res.json())
-      .then(data => setBookings(data))
-      .catch(console.error);
+      .then(data => { if (Array.isArray(data) && data.length) setBookings(data); })
+      .catch(() => {});
 
     fetch('http://localhost:5000/api/messages')
       .then(res => res.json())
-      .then(data => setMessages(data))
-      .catch(console.error);
+      .then(data => { if (Array.isArray(data) && data.length) setMessages(data); })
+      .catch(() => {});
   }, []);
 
   return (
@@ -58,7 +67,7 @@ export default function AgentDashboard() {
             <p className="text-[17px] text-[#414755]">Here is what's happening with your clients today.</p>
           </div>
           <div className="text-[13px] text-[#414755] bg-[#f3f3f8] px-3 py-1.5 rounded-full font-medium">
-            Oct 24, 2024
+            Oct 24, 2026
           </div>
         </div>
 
@@ -168,7 +177,7 @@ export default function AgentDashboard() {
 
             <div className="divide-y divide-[#e2e2e7]/60 flex-1 overflow-y-auto">
               {messages.map((m, idx) => (
-                <div key={idx} className="p-3.5 hover:bg-[#f3f3f8] cursor-pointer flex gap-3">
+                <div key={idx} className="p-3.5 hover:bg-[#f3f3f8] cursor-pointer flex gap-3 transition-colors">
                   <div className="w-10 h-10 rounded-full bg-[#ffdcbf] text-[#8c5000] font-bold flex items-center justify-center flex-shrink-0 text-sm">
                     {m.senderInitials}
                   </div>
@@ -184,7 +193,7 @@ export default function AgentDashboard() {
             </div>
 
             <div className="p-3 border-t border-[#e2e2e7] bg-[#f9f9fe]">
-              <button className="w-full bg-[#e8e8ed] hover:bg-[#e2e2e7] text-[#414755] text-[13px] font-medium py-2 rounded-lg flex items-center justify-center space-x-2">
+              <button className="w-full bg-[#e8e8ed] hover:bg-[#e2e2e7] text-[#414755] text-[13px] font-medium py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors">
                 <Edit3 size={16} />
                 <span>Compose Message</span>
               </button>

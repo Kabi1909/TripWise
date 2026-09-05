@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Search, MapPin, Calendar, Users } from 'lucide-react';
 
-export default function LandingPage({ setView }) {
+export default function LandingPage() {
+  const navigate = useNavigate();
+
   const destinations = [ 
     { title: "Colombo", desc: "Explore historic temples and serene shrines.", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0v_h6DlUdg8cqgGuMhqWmJUr2HkdFbbwGk2zaIA1m8LB2tnTwvpnkT-A&s=10" },
     { title: "Mirissa & Galle Coast, Sri Lanka", desc: "Whale watching and serene colonial fortifications.", img: "https://sahashrithtravel.files.wordpress.com/2021/12/coco.jpg?w=1024", tag: "Popular" },
@@ -15,13 +18,13 @@ export default function LandingPage({ setView }) {
         <span className="text-[22px] font-bold text-[#0058bc]">WiseTravel</span>
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => setView('login')} 
+            onClick={() => navigate('/login')} 
             className="text-[13px] font-medium text-[#0058bc] px-4 py-2 hover:bg-[#f3f3f8] rounded-full transition-colors"
           >
             Log In
           </button>
           <button 
-            onClick={() => setView('register')} 
+            onClick={() => navigate('/register')} 
             className="text-[13px] font-medium bg-[#0058bc] text-white px-4 py-2 rounded-full hover:bg-[#004493] shadow-sm transition-colors"
           >
             Sign Up
@@ -56,7 +59,7 @@ export default function LandingPage({ setView }) {
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717786]" size={18} />
               <input type="text" placeholder="Travelers" className="w-full bg-white rounded-lg py-3 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0058bc]" />
             </div>
-            <button onClick={() => setView('register')} className="w-full md:w-auto bg-[#0058bc] hover:bg-[#004493] text-white font-bold px-8 py-3 rounded-lg text-sm transition-all whitespace-nowrap">
+            <button onClick={() => navigate('/register')} className="w-full md:w-auto bg-[#0058bc] hover:bg-[#004493] text-white font-bold px-8 py-3 rounded-lg text-sm transition-all whitespace-nowrap">
               Search
             </button>
           </div>
@@ -68,7 +71,11 @@ export default function LandingPage({ setView }) {
         <h2 className="text-[28px] font-bold text-[#1a1c1f] mb-6">Trending Sri Lanka & Global Destinations</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {destinations.map((d, i) => (
-            <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#e2e2e7] hover:-translate-y-1 transition-all cursor-pointer">
+            <div 
+              key={i} 
+              onClick={() => navigate('/colombo')}
+              className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#e2e2e7] hover:-translate-y-1 transition-all cursor-pointer"
+            >
               <div className="relative h-48 w-full">
                 <img src={d.img} alt={d.title} className="w-full h-full object-cover" />
                 {d.tag && <span className="absolute top-3 right-3 bg-[#fe9400] text-white text-[11px] font-bold px-2 py-1 rounded-full">{d.tag}</span>}
@@ -86,9 +93,9 @@ export default function LandingPage({ setView }) {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-[13px] text-[#414755]">
           <span className="font-bold text-[#1a1c1f]">WiseTravel</span>
           <div className="flex gap-4 my-2 md:my-0">
-            <a href="#" className="hover:text-[#0058bc]">Help Center</a>
-            <a href="#" className="hover:text-[#0058bc]">Terms of Service</a>
-            <a href="#" className="hover:text-[#0058bc]">Privacy Policy</a>
+            <Link to="/" className="hover:text-[#0058bc]">Help Center</Link>
+            <Link to="/" className="hover:text-[#0058bc]">Terms of Service</Link>
+            <Link to="/" className="hover:text-[#0058bc]">Privacy Policy</Link>
           </div>
           <span>© 2026 WiseTravel AI. All rights reserved.</span>
         </div>
