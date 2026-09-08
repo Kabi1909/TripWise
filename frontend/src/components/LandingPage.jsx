@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Users, X } from 'lucide-react';
+import { MapPin, Calendar, X } from 'lucide-react';
 
 const destinations = [
   {
     id: 'colombo',
+    districts: ['Colombo'],
     title: 'Colombo',
     desc: 'Explore historic temples and serene shrines.',
     img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0v_h6DlUdg8cqgGuMhqWmJUr2HkdFbbwGk2zaIA1m8LB2tnTwvpnkT-A&s=10',
@@ -43,6 +44,7 @@ const destinations = [
   },
   {
     id: 'mirissa-galle',
+    districts: ['Matara', 'Galle'],
     title: 'Mirissa & Galle Coast, Sri Lanka',
     desc: 'Whale watching and serene colonial fortifications.',
     img: 'https://sahashrithtravel.files.wordpress.com/2021/12/coco.jpg?w=1024',
@@ -82,6 +84,7 @@ const destinations = [
   },
   {
     id: 'sigiriya',
+    districts: ['Matale'],
     title: 'Sigiriya Ancient Rock, Sri Lanka',
     desc: 'Immerse in royal gardens and UNESCO heritage.',
     img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7BWZRlXtSmaMC3ts8SEDvf9d7cUs4QrWULPkjpIX7OR4yh834ubvSKk7E&s=10',
@@ -120,6 +123,7 @@ const destinations = [
   },
   {
     id: 'ella',
+    districts: ['Badulla'],
     title: 'Ella Green Highlands, Sri Lanka',
     desc: 'Scenic Nine Arches Bridge and tea estate walks.',
     img: 'https://www.erikastravels.com/wp-content/uploads/2017/10/9-Arch-Bridge-Train.jpg',
@@ -158,10 +162,40 @@ const destinations = [
   },
 ];
 
+const normalizeSearch = (value) =>
+  value.toLowerCase().replace(/[’']/g, '').replace(/\s+/g, ' ').trim();
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const dialogRef = useRef(null);
   const [selectedDestination, setSelectedDestination] = useState(null);
+
+  const [searchInput, setSearchInput] = useState('');
+  const [submittedSearch, setSubmittedSearch] = useState('');
+  const resultsRef = useRef(null);
+  const searchTerm = normalizeSearch(submittedSearch);
+  const getSearchNames = (destination) => [
+    destination.title,
+    ...destination.id.split('-'),
+    ...destination.districts.flatMap((district) => [district, `${district} district`]),
+    ...destination.highlights,
+  ].map(normalizeSearch);
+  const exactMatches = destinations.filter((destination) =>
+    getSearchNames(destination).includes(searchTerm)
+  );
+  const filteredDestinations = !searchTerm
+    ? destinations
+    : exactMatches.length > 0
+      ? exactMatches
+      : destinations.filter((destination) =>
+          getSearchNames(destination).some((name) => name.includes(searchTerm))
+        );
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    setSubmittedSearch(searchInput.trim());
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const openDestination = (destination) => {
     setSelectedDestination(destination);
@@ -213,7 +247,7 @@ export default function LandingPage() {
             Discover your next wise adventure
           </h1>
 
-          <div className="bg-white/80 backdrop-blur-md rounded-xl p-3 flex flex-col md:flex-row gap-3 items-center shadow-lg">
+          <form onSubmit={handleSearch} role="search" aria-label="Search districts and places" className="bg-white/80 backdrop-blur-md rounded-xl p-3 flex flex-col md:flex-row gap-3 items-center shadow-lg">
             <div className="flex-1 w-full relative">
               <MapPin
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717786]"
@@ -221,54 +255,53 @@ export default function LandingPage() {
               />
               <input
                 type="text"
-                placeholder="Where to? (e.g. Colombo, Ella)"
-                className="w-full bg-white rounded-lg py-3 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0058bc]"
-              />
-            </div>
-
-            <div className="flex-1 w-full relative">
-              <Calendar
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717786]"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Dates"
-                className="w-full bg-white rounded-lg py-3 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0058bc]"
-              />
-            </div>
-
-            <div className="flex-1 w-full relative">
-              <Users
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717786]"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Travelers"
+                placeholder="Search districts or places (e.g. Badulla, Ella)"
+                aria-label="District or place"
+                aria-controls="destination-results"
+                value={searchInput}
+                onChange={(event) => {
+                  setSearchInput(event.target.value);
+                  if (!event.target.value.trim()) setSubmittedSearch('');
+                }}
                 className="w-full bg-white rounded-lg py-3 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0058bc]"
               />
             </div>
 
             <button
-              type="button"
-              onClick={() => navigate('/register')}
+              type="submit"
               className="w-full md:w-auto bg-[#0058bc] hover:bg-[#004493] text-white font-bold px-8 py-3 rounded-lg text-sm transition-all whitespace-nowrap"
             >
               Search
             </button>
-          </div>
+          </form>
         </div>
       </section>
 
       {/* Trending Destinations */}
-      <section className="max-w-7xl mx-auto px-6 py-12 flex-1">
+      <section ref={resultsRef} id="destination-results" className="max-w-7xl mx-auto px-6 py-12 flex-1 scroll-mt-20">
         <h2 className="text-[28px] font-bold text-[#1a1c1f] mb-6">
           Trending Sri Lanka &amp; Global Destinations
         </h2>
 
+        <p role="status" className="sr-only">
+          {searchTerm
+            ? `${filteredDestinations.length} destinations found for ${submittedSearch}.`
+            : 'Showing all destinations.'}
+        </p>
+
+        {filteredDestinations.length === 0 && (
+          <div className="bg-white rounded-xl border border-[#e2e2e7] p-6 shadow-sm">
+            <h3 className="text-[17px] font-semibold text-[#1a1c1f] mb-1">
+              No places found for “{submittedSearch}”
+            </h3>
+            <p className="text-[13px] text-[#414755]">
+              Try another district or place, or clear the search to see all destinations.
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {destinations.map((destination) => (
+          {filteredDestinations.map((destination) => (
             <button
               key={destination.id}
               type="button"
