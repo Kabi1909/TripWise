@@ -1,7 +1,8 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from './context/AuthContext';
 import { AuthProvider } from './context/AuthProvider';
+import { portalPath } from './lib/authNavigation';
 import Sidebar from './components/Sidebar';
 import AgentDashboard from './components/AgentDashboard';
 import ColomboItinerary from './components/ColomboItinerary';
@@ -16,9 +17,15 @@ function Protected({ agentOnly = false }) {
   const { user, checking } = useContext(AuthContext);
   const location = useLocation();
   if (checking) return <p role="status" className="p-8">Checking session…</p>;
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  if (!user?.token) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   if (agentOnly && user.role !== 'Travel Agent') return <Navigate to="/trips" replace />;
   return <Outlet />;
+}
+function GuestOnly() {
+  const { user, checking } = useContext(AuthContext);
+  const [signedInOnEntry] = useState(() => Boolean(user?.token));
+  if (checking) return <p role="status" className="p-8">Checking session…</p>;
+  return signedInOnEntry && user?.token ? <Navigate to={portalPath(user.role)} replace /> : <Outlet />;
 }
 function Portal() {
   const { logout } = useContext(AuthContext);
@@ -31,8 +38,10 @@ function Portal() {
 export default function App() {
   return <AuthProvider><BrowserRouter><Routes>
     <Route path="/" element={<LandingPage />} />
-    <Route path="/login" element={<Login />} />
-    <Route path="/register" element={<Register />} />
+    <Route element={<GuestOnly />}>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+    </Route>
     <Route path="/oauth/callback" element={<OAuthCallback />} />
     <Route element={<Protected />}><Route element={<Portal />}>
       <Route path="/colombo" element={<Navigate to="/trips" replace />} />

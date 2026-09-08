@@ -1,7 +1,8 @@
 import { useState, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { API_URL, startOAuth } from '../lib/api';
+import { API_URL } from '../lib/api';
+import { loginDestination } from '../lib/authNavigation';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -23,7 +24,7 @@ export default function Login() {
       const data = await res.json();
       if (res.ok) {
         login(data);
-        navigate(location.state?.from?.startsWith('/') && !location.state.from.startsWith('//') ? location.state.from : data.role === 'Travel Agent' ? '/agent' : '/trips', { replace: true });
+        navigate(loginDestination(data.role, location.state?.from), { replace: true });
       } else {
         setErrorMsg(data.message || 'Invalid email or password');
       }
@@ -41,24 +42,22 @@ export default function Login() {
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-[480px] bg-white rounded-xl border border-[#e2e2e7]/60 shadow-[0_8px_20px_rgba(0,0,0,0.06)] p-8 flex flex-col gap-6">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="self-start text-[13px] font-medium text-[#0058bc] px-4 py-2 hover:bg-[#f3f3f8] rounded-full transition-colors"
+        >
+          Home
+        </button>
+
         <div className="text-center">
           <h1 className="text-[28px] font-bold text-[#1a1c1f] mb-1">Welcome back</h1>
           <p className="text-[15px] text-[#414755]">Log in to manage your bookings and custom itineraries.</p>
         </div>
 
-        {/* OAuth Buttons */}
-        <div className="flex flex-col gap-2.5">
-          <button type="button" onClick={() => startOAuth('google', 'Traveler').catch(error => setErrorMsg(error.message))} className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
-            <span>👤 Continue with Google</span>
-          </button>
-          <button type="button" onClick={() => startOAuth('apple', 'Traveler').catch(error => setErrorMsg(error.message))} className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
-            <span>💻 Continue with Apple</span>
-          </button>
-        </div>
-
         <div className="flex items-center gap-3">
           <div className="h-px bg-[#e2e2e7] flex-1"></div>
-          <span className="text-[11px] font-semibold text-[#414755] uppercase">Or log in with email</span>
+          <span className="text-[11px] font-semibold text-[#414755] uppercase">Log in with email</span>
           <div className="h-px bg-[#e2e2e7] flex-1"></div>
         </div>
 

@@ -45,7 +45,7 @@ The destination catalog contains sample packages. There is no airline/hotel inve
 
 ## Google and Apple setup
 
-Both buttons now start an authorization-code flow. Missing credentials produce a clear message; email login remains available.
+Google and Apple buttons have been removed from login and registration. The current UI uses email/password credentials only. The optional backend OAuth implementation remains available for future integration; its configuration is documented below.
 
 Google:
 - Create a Web OAuth client and set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
@@ -76,4 +76,8 @@ Identity tokens are checked against provider RSA keys, issuer, audience, expiry,
 
 Tests do not mutate the configured database. An isolated browser fixture API can be started with node test/preview.js in backend; use frontend port 5174 and VITE_API_URL=http://127.0.0.1:5001/api. Its fictional accounts are agent@example.test and traveler@example.test, password TripWiseTest123!. It uses in-memory data only and must never be used as a production API.
 
-Real provider OAuth sign-in still requires your Google/Apple credentials and registered domains. The MongoDB connection was checked using a read-only ping; persistent database writes were not exercised against your real database.
+Optional provider OAuth integration requires Google/Apple credentials and registered domains; it is not offered by the current login UI. The MongoDB connection was checked using a read-only ping; persistent database writes were not exercised against your real database.
+
+## Login access rules
+
+Signed-out visitors can browse the home page and open login/registration. Trip creation, itineraries, messages, history, and agent pages require authentication. The home-page Login button opens /login. Agent credentials always redirect to /agent; traveler credentials open /trips or restore an allowed traveler page. Agent-only routes remain unavailable to travelers. Saved session data without a token is not accepted, and stored sessions are verified with the API before opening protected pages. Signing out in another tab clears the active session here too.

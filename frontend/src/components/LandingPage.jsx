@@ -10,7 +10,8 @@ const normalizeSearch = (value) =>
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+  const { user, checking, logout } = useContext(AuthContext);
+  const signedIn = !checking && Boolean(user?.token);
   const [historyError, setHistoryError] = useState('');
   const dialogRef = useRef(null);
   const [selectedDestination, setSelectedDestination] = useState(null);
@@ -63,18 +64,25 @@ export default function LandingPage() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate(user ? (user.role === 'Travel Agent' ? '/agent' : '/trips') : '/login')}
+            onClick={() => navigate(signedIn ? (user.role === 'Travel Agent' ? '/agent' : '/trips') : '/login')}
             className="text-[13px] font-medium text-[#0058bc] px-4 py-2 hover:bg-[#f3f3f8] rounded-full transition-colors"
           >
-            {user ? 'My Portal' : 'Log In'}
+            {signedIn ? 'My Portal' : 'Login'}
           </button>
 
           <button
             type="button"
-            onClick={() => navigate('/register')}
+            onClick={() => {
+              if (signedIn) {
+                logout();
+                setHistoryError('');
+              } else {
+                navigate('/register');
+              }
+            }}
             className="text-[13px] font-medium bg-[#0058bc] text-white px-4 py-2 rounded-full hover:bg-[#004493] shadow-sm transition-colors"
           >
-            Sign Up
+            {signedIn ? 'Logout' : 'Sign Up'}
           </button>
         </div>
       </header>
@@ -305,9 +313,14 @@ export default function LandingPage() {
                       </ul>
                       <button type="button" className="mt-4 bg-[#0058bc] hover:bg-[#004493] text-white px-4 py-2 rounded-lg text-[13px] font-medium"
                         onClick={() => {
-                          recordHistory('package', travelPackage.name, selectedDestination.title, selectedDestination.id).catch(() => {});
+                          const target = '/trips/new?destination=' + selectedDestination.id + '&package=' + encodeURIComponent(travelPackage.name);
                           closeDestination();
-                          navigate('/trips/new?destination=' + selectedDestination.id + '&package=' + encodeURIComponent(travelPackage.name));
+                          if (!signedIn) {
+                            navigate('/login', { state: { from: target } });
+                            return;
+                          }
+                          recordHistory('package', travelPackage.name, selectedDestination.title, selectedDestination.id).catch(() => {});
+                          navigate(target);
                         }}>
                         Customize trip
                       </button>
