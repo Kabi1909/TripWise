@@ -1,55 +1,54 @@
-import React, { useContext } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { AuthContext, AuthProvider } from './context/AuthContext';
+import { useContext } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext';
+import { AuthProvider } from './context/AuthProvider';
 import Sidebar from './components/Sidebar';
 import AgentDashboard from './components/AgentDashboard';
 import ColomboItinerary from './components/ColomboItinerary';
 import Register from './components/Register';
 import Login from './components/Login';
 import LandingPage from './components/LandingPage';
-
-function AppContent() {
-  const { logout } = useContext(AuthContext);
+import OAuthCallback from './components/OAuthCallback';
+import TripEditor from './components/TripEditor';
+import Messages from './components/Messages';
+import { Trips, Clients, Reports, History, Help } from './components/PortalPages';
+function Protected({ agentOnly = false }) {
+  const { user, checking } = useContext(AuthContext);
   const location = useLocation();
-  const navigate = useNavigate();
-
-  const isAgent = location.pathname.startsWith('/agent');
-  const isColombo = location.pathname.startsWith('/colombo');
-  const showSidebar = isAgent || isColombo;
-  const currentView = isColombo ? 'colombo' : 'agent';
-
-  return (
-    <div className="flex min-h-screen bg-[#f9f9fe]">
-      {showSidebar && (
-        <Sidebar 
-          currentView={currentView} 
-          onLogout={() => { 
-            logout(); 
-            navigate('/'); 
-          }} 
-        />
-      )}
-
-      <div className={`flex-1 w-full ${showSidebar ? 'md:ml-64' : ''}`}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/agent" element={<AgentDashboard />} />
-          <Route path="/colombo" element={<ColomboItinerary />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </div>
-  );
+  if (checking) return <p role="status" className="p-8">Checking session…</p>;
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  if (agentOnly && user.role !== 'Travel Agent') return <Navigate to="/trips" replace />;
+  return <Outlet />;
 }
-
+function Portal() {
+  const { logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  return <div className="min-h-screen bg-[#f9f9fe] font-['Inter']">
+    <Sidebar onLogout={() => { logout(); navigate('/'); }} />
+    <div className="md:ml-64"><Outlet /></div>
+  </div>;
+}
 export default function App() {
-  return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </AuthProvider>
-  );
-} 
+  return <AuthProvider><BrowserRouter><Routes>
+    <Route path="/" element={<LandingPage />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
+    <Route path="/oauth/callback" element={<OAuthCallback />} />
+    <Route element={<Protected />}><Route element={<Portal />}>
+      <Route path="/colombo" element={<Navigate to="/trips" replace />} />
+      <Route path="/trips" element={<Trips />} />
+      <Route path="/trips/new" element={<main className="p-6 md:p-8"><TripEditor /></main>} />
+      <Route path="/trips/:id" element={<ColomboItinerary />} />
+      <Route path="/messages" element={<Messages />} />
+      <Route path="/history" element={<History />} />
+      <Route path="/help" element={<Help />} />
+      <Route element={<Protected agentOnly />}>
+        <Route path="/agent" element={<AgentDashboard />} />
+        <Route path="/agent/new" element={<main className="p-6 md:p-8"><TripEditor /></main>} />
+        <Route path="/agent/clients" element={<Clients />} />
+        <Route path="/agent/reports" element={<Reports />} />
+      </Route>
+    </Route></Route>
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </Routes></BrowserRouter></AuthProvider>;
+}

@@ -1,13 +1,10 @@
 const mongoose = require('mongoose');
-
-const messageSchema = new mongoose.Schema({
+module.exports = mongoose.model('Message', new mongoose.Schema({
+  bookingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking', required: true, index: true },
+  senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  recipientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   senderName: { type: String, required: true },
-  senderInitials: { type: String, default: 'CK' },
-  avatar: { type: String, default: '' },
-  message: { type: String, required: true },
-  time: { type: String, default: '10:42 AM' },
+  senderInitials: String,
+  message: { type: String, required: true, maxlength: 4000 },
   unread: { type: Boolean, default: true },
-  createdAt: { type: Date, default: Date.now }
-});
-
-module.exports = mongoose.model('Message', messageSchema); 
+}, { timestamps: true }));

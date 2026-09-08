@@ -1,6 +1,7 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useContext } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { API_URL, startOAuth } from '../lib/api';
 
 export default function Register() {
   const [role, setRole] = useState('Traveler');
@@ -9,11 +10,12 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register', {
+      const res = await fetch(API_URL + '/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullName, email, password, role })
@@ -21,11 +23,11 @@ export default function Register() {
       const data = await res.json();
       if (res.ok) {
         login(data);
-        navigate(data.role === 'Travel Agent' ? '/agent' : '/colombo');
+        navigate(location.state?.from?.startsWith('/') && !location.state.from.startsWith('//') ? location.state.from : data.role === 'Travel Agent' ? '/agent' : '/trips', { replace: true });
       } else {
         alert(data.message || 'Registration failed');
       }
-    } catch (err) {
+    } catch {
       alert('Error connecting to backend');
     }
   };
@@ -62,10 +64,10 @@ export default function Register() {
 
         {/* OAuth Buttons */}
         <div className="flex flex-col gap-2.5">
-          <button type="button" className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
+          <button type="button" onClick={() => startOAuth('google', role).catch(error => alert(error.message))} className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
             <span>👤 Continue with Google</span>
           </button>
-          <button type="button" className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
+          <button type="button" onClick={() => startOAuth('apple', role).catch(error => alert(error.message))} className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
             <span>💻 Continue with Apple</span>
           </button>
         </div>
@@ -103,6 +105,7 @@ export default function Register() {
             <label className="block text-[11px] font-semibold text-[#414755] mb-1">Password</label>
             <input 
               type="password"
+              minLength={8}
               className="w-full bg-[#f3f3f8] border border-transparent focus:border-[#0058bc] rounded-lg py-2.5 px-3 text-[15px] outline-none" 
               placeholder="••••••••" 
               value={password}
@@ -122,7 +125,7 @@ export default function Register() {
             Already have an account?{' '}
             <button 
               type="button"
-              onClick={() => navigate('/login')} 
+              onClick={() => navigate('/login', { state: location.state })}
               className="text-[#0058bc] hover:underline font-medium"
             >
               Log in

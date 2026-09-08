@@ -1,39 +1,43 @@
-import React, { useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import usePolling from '../hooks/usePolling';
+import { destinations } from '../lib/destinations';
+import TripEditor from './TripEditor';
+import { Modal, Notice } from './PortalUI';
 import { SunMedium, ArrowRight, Utensils, Compass } from 'lucide-react';
 
 export default function ColomboItinerary() {
-  const [data, setData] = useState({
-    title: "Colombo Masterclass",
-    client: "Neha",
-    clientType: "VIP Client",
-    activeDayText: "Day 3 of 7",
-    highlightTitle: "Exploring the Fort District",
-    highlightDescription: "Guided tour through colonial architecture, followed by a culinary masterclass at the Ministry of Crab.",
-    weather: {
-      temp: "31°C",
-      city: "Colombo",
-      tip: "Monsoon season approaching. Advise client to carry an umbrella."
-    },
-    exchangeRate: {
-      base: "1 USD",
-      rate: "315 LKR"
-    },
-    schedule: [
-      { time: "09:00 AM", title: "Breakfast at Galle Face Hotel", description: "Colonial ocean-view dining veranda", status: "past" },
-      { time: "11:30 AM (Now)", title: "Fort District Guided Walk", description: "Meeting guide at the Dutch Hospital Precinct.", status: "active" },
-      { time: "14:00 PM", title: "Ministry of Crab Masterclass", description: "Exclusive culinary session with Chef Dharshan", status: "upcoming" }
-    ]
+  const { id } = useParams();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const trip = usePolling('/bookings/' + id);
+  const history = usePolling('/portal/history', []);
+  const intel = usePolling('/intel/' + (trip.data?.destinationId || 'colombo'), null, 600000);
+  const [day, setDay] = useState(1);
+  const [editing, setEditing] = useState(false);
+  const [details, setDetails] = useState(false);
+  if (!trip.data) return <main className="p-8"><Notice error={Boolean(trip.error)}>{trip.error || 'Loading itinerary…'}</Notice></main>;
+  const booking = trip.data;
+  const destination = destinations.find(d => d.id === booking.destinationId);
+  const totalDays = Math.round((Date.parse(booking.endDate) - Date.parse(booking.startDate)) / 86400000) + 1;
+  const selectedDay = Math.min(day, totalDays);
+  const next = booking.status !== 'Cancelled' && booking.schedule.find(item => {
+    const date = new Date(Date.parse(booking.startDate) + (item.day - 1) * 86400000).toISOString().slice(0, 10);
+    return item.reservation && item.status !== 'past' && new Date(date + 'T' + item.time + ':00+05:30').getTime() >= (trip.updatedAt?.getTime() || 0);
   });
-
-  useEffect(() => {
-    fetch('http://localhost:5000/api/itinerary/colombo')
-      .then(res => res.json())
-      .then(d => { if (d && d.title) setData(d); })
-      .catch(() => {});
-  }, []);
-
+  const local = intel.data?.weather?.city === destination?.title || intel.data?.weather?.city === booking.destination ? intel.data : null;
+  const data = {
+    ...booking, client: booking.clientName, clientType: booking.status,
+    activeDayText: 'Day ' + selectedDay + ' of ' + totalDays,
+    highlightTitle: booking.highlightTitle || booking.destination,
+    highlightDescription: booking.highlightDescription || 'Your agent will add activities and milestones here.',
+    weather: local?.weather || { temp: 'Unavailable', city: booking.destination, tip: 'Loading destination conditions…' },
+    exchangeRate: local?.exchangeRate || { base: '1 USD', rate: 'Unavailable' },
+    schedule: booking.schedule.filter(item => item.day === selectedDay),
+  };
   return (
-    <main className="flex-1 md:ml-64 p-6 md:p-8 bg-[#f9f9fe] min-h-screen font-['Inter']">
+    <main className="flex-1 p-6 md:p-8 bg-[#f9f9fe] min-h-screen font-['Inter']">
       <header className="flex justify-between items-end mb-8">
         <div>
           <p className="text-[13px] font-semibold text-[#414755] uppercase tracking-wider mb-1">Current Itinerary</p>
@@ -42,7 +46,7 @@ export default function ColomboItinerary() {
         <div className="flex items-center gap-3">
           <img 
             src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80" 
-            alt="Neha" 
+            alt={data.client}
             className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover" 
           />
           <div>
@@ -52,18 +56,20 @@ export default function ColomboItinerary() {
         </div>
       </header>
 
+      {trip.error && <Notice error>{trip.error} Showing the last loaded itinerary.</Notice>}
+      {intel.error && <Notice error>{intel.error}</Notice>}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Destination Banner */}
         <div className="lg:col-span-8 rounded-xl overflow-hidden relative shadow-md h-[400px]">
           <img 
-            src="https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?w=1000&auto=format&fit=crop&q=80" 
-            alt="Colombo Lotus Tower and Skyline" 
+            src={destination?.img}
+            alt={booking.destination}
             className="w-full h-full object-cover" 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
           <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-[#008733] animate-ping"></span>
-            <span className="text-[11px] font-bold text-[#1a1c1f] uppercase tracking-wide">LIVE</span>
+            <span className="text-[11px] font-bold text-[#1a1c1f] uppercase tracking-wide">{trip.error ? 'Offline' : 'Synced'}</span>
           </div>
           <div className="absolute bottom-0 left-0 p-6 w-full text-white flex justify-between items-end">
             <div>
@@ -73,7 +79,7 @@ export default function ColomboItinerary() {
               <h3 className="text-[28px] font-bold mb-1">{data.highlightTitle}</h3>
               <p className="text-[15px] text-white/90 max-w-lg">{data.highlightDescription}</p>
             </div>
-            <button className="bg-[#0058bc] hover:bg-[#004493] text-white px-4 py-2.5 rounded-lg text-[15px] font-semibold flex items-center gap-2 shadow-lg transition-colors">
+            <button onClick={() => setDetails(true)} className="bg-[#0058bc] hover:bg-[#004493] text-white px-4 py-2.5 rounded-lg text-[15px] font-semibold flex items-center gap-2 shadow-lg transition-colors">
               View Details <ArrowRight size={16} />
             </button>
           </div>
@@ -99,7 +105,11 @@ export default function ColomboItinerary() {
               </div>
             </div>
             <div className="bg-[#f3f3f8] rounded-lg p-3">
-              <p className="text-[11px] text-[#414755]">💡 {data.weather.tip}</p>
+              <p className="text-[11px] text-[#414755]">{data.weather.tip}</p>
+              <p className="text-[11px] text-[#414755] mt-2">
+                <a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="underline">Weather forecast</a>{data.weather.observedAt ? ' · ' + data.weather.observedAt : ''}
+                {' · '}<a href="https://frankfurter.dev/" target="_blank" rel="noreferrer" className="underline">Daily exchange rate</a>{data.exchangeRate.date ? ' · ' + data.exchangeRate.date : ''}
+              </p>
             </div>
           </div>
 
@@ -110,11 +120,11 @@ export default function ColomboItinerary() {
                 <Utensils size={20} />
               </div>
               <div>
-                <p className="text-[17px] font-semibold text-[#1a1c1f]">Dinner Reservation</p>
-                <p className="text-[15px] text-[#414755]">Gallery Cafe, Colombo 03 (19:30)</p>
+                <p className="text-[17px] font-semibold text-[#1a1c1f]">{next?.title || 'No upcoming reservations'}</p>
+                <p className="text-[15px] text-[#414755]">{next ? 'Day ' + next.day + ' · ' + next.time + ' · ' + next.description : 'Your agent can add reservations to your itinerary.'}</p>
                 <div className="mt-2 flex gap-3">
-                  <button className="text-[#0058bc] text-[11px] font-semibold hover:underline">Message Client</button>
-                  <button className="text-[#0058bc] text-[11px] font-semibold hover:underline">View Menu</button>
+                  <button onClick={() => navigate('/messages?trip=' + id)} className="text-[#0058bc] text-[11px] font-semibold hover:underline">{user.role === 'Travel Agent' ? 'Message Client' : 'Message Agent'}</button>
+                  {next?.menuUrl && <a href={next.menuUrl} target="_blank" rel="noreferrer" className="text-[#0058bc] text-[11px] font-semibold hover:underline">View Menu</a>}
                 </div>
               </div>
             </div>
@@ -124,9 +134,11 @@ export default function ColomboItinerary() {
         {/* Schedule Timeline */}
         <div className="lg:col-span-8 bg-white rounded-xl p-6 shadow-sm border border-[#e2e2e7]">
           <div className="flex justify-between items-center mb-6">
-            <h4 className="text-[22px] font-bold text-[#1a1c1f]">Today's Schedule</h4>
-            <button className="text-[#0058bc] text-[13px] font-semibold">Edit</button>
+            <h4 className="text-[22px] font-bold text-[#1a1c1f]">Day {selectedDay} Schedule</h4>
+            <div className="flex items-center gap-3"><select aria-label="Select itinerary day" value={selectedDay} onChange={e => setDay(Number(e.target.value))} className="bg-[#f3f3f8] rounded-lg p-2 text-[13px]">{Array.from({ length: totalDays }, (_, i) => <option key={i} value={i + 1}>Day {i + 1}</option>)}</select>
+            {user.role === 'Travel Agent' && <button onClick={() => setEditing(true)} className="text-[#0058bc] text-[13px] font-semibold">Edit</button>}</div>
           </div>
+          {!data.schedule.length && <Notice>No activities scheduled for this day yet.</Notice>}
           <div className="relative pl-6 border-l-2 border-[#e8e8ed] space-y-6">
             {data.schedule.map((item, idx) => (
               <div key={idx} className="relative">
@@ -152,28 +164,26 @@ export default function ColomboItinerary() {
         <div className="lg:col-span-4 bg-white rounded-xl p-6 shadow-sm border border-[#e2e2e7]">
           <h4 className="text-[22px] font-bold text-[#1a1c1f] mb-4">Recently Viewed</h4>
           <div className="space-y-3">
-            <div className="flex items-center gap-3 p-2 hover:bg-[#f3f3f8] rounded-lg cursor-pointer transition-colors">
-              <img src="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=100&auto=format&fit=crop&q=80" alt="Maldives" className="w-12 h-12 rounded object-cover" />
-              <div>
-                <p className="text-[15px] font-semibold text-[#1a1c1f]">Maldives Retreat</p>
-                <p className="text-[11px] text-[#414755]">Client: The Smiths</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-2 hover:bg-[#f3f3f8] rounded-lg cursor-pointer transition-colors">
-              <div className="w-12 h-12 rounded bg-[#f3f3f8] flex items-center justify-center text-[#414755]">
-                <Compass size={22} />
-              </div>
-              <div>
-                <p className="text-[15px] font-semibold text-[#1a1c1f]">Sigiriya Heritage Tour</p>
-                <p className="text-[11px] text-[#414755]">Cultural Triangle</p>
-              </div>
-            </div>
+            {history.error && <Notice error>{history.error}</Notice>}
+            {history.data.filter(h => h.kind === 'destination' || h.kind === 'package').slice(0, 3).map(h => <button key={h._id} onClick={() => navigate('/history')} className="w-full text-left flex items-center gap-3 p-2 hover:bg-[#f3f3f8] rounded-lg transition-colors">
+              <div className="w-12 h-12 rounded bg-[#f3f3f8] flex items-center justify-center text-[#414755]"><Compass size={22} /></div>
+              <div><p className="text-[15px] font-semibold text-[#1a1c1f]">{h.title}</p><p className="text-[11px] text-[#414755]">{new Date(h.createdAt).toLocaleDateString()}</p></div>
+            </button>)}
+            {!history.data.length && <p className="text-[13px] text-[#414755]">No recently viewed destinations yet.</p>}
           </div>
-          <button className="mt-4 w-full py-2 text-center text-[#0058bc] text-[13px] font-medium hover:bg-[#0058bc]/5 rounded-lg transition-colors">
+          <button onClick={() => navigate('/history')} className="mt-4 w-full py-2 text-center text-[#0058bc] text-[13px] font-medium hover:bg-[#0058bc]/5 rounded-lg transition-colors">
             View All History
           </button>
         </div>
       </div>
+      {editing && <Modal title="Edit itinerary" onClose={() => setEditing(false)}><TripEditor booking={booking} onSaved={() => { setEditing(false); trip.refresh(); }} /></Modal>}
+      {details && <Modal title={booking.title} onClose={() => setDetails(false)}>
+        <p className="text-[15px] text-[#414755] mb-4">{destination?.about}</p>
+        <p>{booking.packageName || 'Custom trip'} · {booking.dates} · {booking.groupSize} travelers</p>
+        <p className="mt-3">Agent: {booking.agentId?.fullName} · Status: {booking.status}</p>
+        <p className="mt-3">{booking.amount ? 'Total: USD ' + booking.amount.toLocaleString() : 'Price awaiting agent confirmation'}</p>
+        <p className="mt-3 text-[13px] text-[#414755]">Itinerary last updated: {new Date(booking.updatedAt).toLocaleString()}. Activity statuses are updated by your agent; this page refreshes every 30 seconds.</p>
+      </Modal>}
     </main>
   );
 } 

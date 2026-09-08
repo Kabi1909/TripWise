@@ -1,7 +1,7 @@
-const express = require('express');
-const router = express.Router();
-const { getColomboItinerary } = require('../controllers/itineraryController');
-
-router.get('/colombo', getColomboItinerary);
-
-module.exports = router; 
+const router = require('express').Router();
+const { protect } = require('../middleware/authMiddleware');
+const { getBooking, getBookings } = require('../controllers/bookingController');
+router.use(protect);
+router.get('/colombo', getBookings);
+router.get('/:id', getBooking);
+module.exports = router;

@@ -1,6 +1,7 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useContext } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { API_URL, startOAuth } from '../lib/api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -8,12 +9,13 @@ export default function Login() {
   const [errorMsg, setErrorMsg] = useState('');
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch(API_URL + '/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -21,11 +23,11 @@ export default function Login() {
       const data = await res.json();
       if (res.ok) {
         login(data);
-        navigate(data.role === 'Travel Agent' ? '/agent' : '/colombo');
+        navigate(location.state?.from?.startsWith('/') && !location.state.from.startsWith('//') ? location.state.from : data.role === 'Travel Agent' ? '/agent' : '/trips', { replace: true });
       } else {
         setErrorMsg(data.message || 'Invalid email or password');
       }
-    } catch (err) {
+    } catch {
       setErrorMsg('Cannot reach backend server. Please make sure the backend is running.');
     }
   };
@@ -46,10 +48,10 @@ export default function Login() {
 
         {/* OAuth Buttons */}
         <div className="flex flex-col gap-2.5">
-          <button type="button" className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
+          <button type="button" onClick={() => startOAuth('google', 'Traveler').catch(error => setErrorMsg(error.message))} className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
             <span>👤 Continue with Google</span>
           </button>
-          <button type="button" className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
+          <button type="button" onClick={() => startOAuth('apple', 'Traveler').catch(error => setErrorMsg(error.message))} className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#e2e2e7] rounded-lg text-[13px] font-medium text-[#1a1c1f] hover:bg-[#f3f3f8] transition-colors">
             <span>💻 Continue with Apple</span>
           </button>
         </div>
@@ -109,7 +111,7 @@ export default function Login() {
             Don't have an account?{' '}
             <button 
               type="button"
-              onClick={() => navigate('/register')} 
+              onClick={() => navigate('/register', { state: location.state })}
               className="text-[#0058bc] hover:underline font-medium"
             >
               Sign up
