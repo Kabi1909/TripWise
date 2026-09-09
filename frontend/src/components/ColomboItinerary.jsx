@@ -44,13 +44,8 @@ export default function ColomboItinerary() {
           <h2 className="text-[34px] font-bold text-[#1a1c1f]">{data.title}</h2>
         </div>
         <div className="flex items-center gap-3">
-          <img 
-            src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80" 
-            alt={data.client}
-            className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover" 
-          />
           <div>
-            <p className="text-[17px] font-semibold text-[#1a1c1f]">{data.client}</p>
+            {user.role === 'Travel Agent' && <p className="text-[17px] font-semibold text-[#1a1c1f]">{data.client}</p>}
             <p className="text-[11px] text-[#414755]">{data.clientType}</p>
           </div>
         </div>

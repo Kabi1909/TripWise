@@ -7,8 +7,9 @@ export function AccountAvatar() {
   const { user } = useContext(AuthContext);
   const initial = (user.email?.trim()[0] || user.fullName?.trim()[0] || '?').toUpperCase();
   return <details className="relative" onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.open = false; }} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false; }}>
-    <summary aria-label={'Account: ' + user.email} title={user.email} className="list-none cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0058bc] [&::-webkit-details-marker]:hidden">
-      <span className="w-8 h-8 rounded-full bg-[#d8e2ff] text-[#0058bc] border border-[#e2e2e7] flex items-center justify-center text-[13px] font-bold">{initial}</span>
+    <summary aria-label={'Account: ' + user.email} title={user.email} className="flex items-center gap-3 list-none cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0058bc] [&::-webkit-details-marker]:hidden">
+      <span className="max-w-28 sm:max-w-48 truncate text-[15px] font-semibold text-[#1a1c1f]">{user.fullName}</span>
+      <span className="w-8 h-8 shrink-0 rounded-full bg-[#d8e2ff] text-[#0058bc] border border-[#e2e2e7] flex items-center justify-center text-[13px] font-bold">{initial}</span>
     </summary>
     <div className="absolute right-0 top-full mt-3 z-50 w-64 max-w-[calc(100vw-3rem)] bg-white border border-[#e2e2e7] rounded-xl shadow-lg p-4">
       <p className="text-[15px] font-semibold text-[#1a1c1f]">{user.fullName}</p>

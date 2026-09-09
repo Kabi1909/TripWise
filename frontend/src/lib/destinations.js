@@ -1,6 +1,7 @@
 export const destinations = [
   {
     id: 'colombo',
+    tag: 'Popular',
     districts: ['Colombo'],
     title: 'Colombo',
     desc: 'Explore historic temples and serene shrines.',
@@ -43,8 +44,7 @@ export const destinations = [
     districts: ['Matara', 'Galle'],
     title: 'Mirissa & Galle Coast, Sri Lanka',
     desc: 'Whale watching and serene colonial fortifications.',
-    img: 'https://sahashrithtravel.files.wordpress.com/2021/12/coco.jpg?w=1024',
-    tag: 'Popular',
+    img: 'https://vacaywork.com/wp-content/uploads/2021/12/coco.jpg?w=1024',
     about:
       'Explore the southern coast with beach time in Mirissa and walks through the historic streets and seaside ramparts of Galle Fort.',
     highlights: [

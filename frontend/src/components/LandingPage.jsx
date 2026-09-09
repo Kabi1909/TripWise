@@ -164,13 +164,13 @@ export default function LandingPage() {
               onClick={() => openDestination(destination)}
               aria-label={`View ${destination.title} details and packages`}
               aria-haspopup="dialog"
-              className="bg-white rounded-xl overflow-hidden shadow-sm border border-[#e2e2e7] hover:-translate-y-1 transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0058bc] focus-visible:ring-offset-2"
+              className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm border border-[#e2e2e7] hover:-translate-y-1 transition-all cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0058bc] focus-visible:ring-offset-2"
             >
-              <div className="relative h-48 w-full">
+              <div className="relative h-48 w-full shrink-0 overflow-hidden">
                 <img
                   src={destination.img}
                   alt={destination.title}
-                  className="w-full h-full object-cover"
+                  className="absolute inset-0 block w-full h-full object-cover object-center"
                 />
 
                 {destination.tag && (
