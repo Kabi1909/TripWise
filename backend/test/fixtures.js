@@ -59,6 +59,7 @@ function installFixtures() {
       find: filter => query(stores[name].filter(d => match(d, filter || {}))),
       findOne: filter => query(stores[name].find(d => match(d, filter)) || null),
       findById: id => query(stores[name].find(d => String(d._id) === String(id)) || null),
+      countDocuments: async filter => stores[name].filter(d => match(d, filter)).length,
       exists: async filter => stores[name].some(d => match(d, filter)),
       create: async input => add(name, input),
       findOneAndDelete: async filter => {

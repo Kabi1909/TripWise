@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import usePolling from '../hooks/usePolling';
 import TripEditor from './TripEditor';
+import { AccountAvatar, NotificationBell } from './PortalHeader';
+import { useNotifications } from '../context/NotificationContext';
 import { Modal, Notice } from './PortalUI';
-import { Search, Bell, HelpCircle, Settings, Plane, CreditCard, UserPlus, MoreVertical, MessageSquare, Edit3 } from 'lucide-react';
+import { Search, HelpCircle, Settings, Plane, CreditCard, UserPlus, MoreVertical, MessageSquare, Edit3 } from 'lucide-react';
 
 export default function AgentDashboard() {
   const { user } = useContext(AuthContext);
@@ -16,7 +18,7 @@ export default function AgentDashboard() {
   const [editing, setEditing] = useState(null);
   const bookings = bookingState.data.filter(b => (b.clientName + ' ' + b.destination + ' ' + b.status).toLowerCase().includes(query.toLowerCase()));
   const messages = messageState.data.filter(m => m.recipientId === user._id).slice(0, 5);
-  const unread = messageState.data.filter(m => m.recipientId === user._id && m.unread).length;
+  const { count: unread } = useNotifications();
 
   return (
     <div className="flex-1 min-h-screen flex flex-col bg-[#f9f9fe] font-['Inter']">
@@ -37,18 +39,11 @@ export default function AgentDashboard() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <button onClick={() => navigate('/messages')} aria-label="Messages" className="p-2 text-[#414755] hover:bg-[#f3f3f8] rounded-full relative">
-            <Bell size={20} />
-            {unread > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ba1a1a] rounded-full"></span>}
-          </button>
+          <NotificationBell />
           <button onClick={() => navigate('/help')} aria-label="Help" className="p-2 text-[#414755] hover:bg-[#f3f3f8] rounded-full hidden sm:block"><HelpCircle size={20} /></button>
           <button onClick={() => navigate('/agent/reports')} aria-label="Reports" className="p-2 text-[#414755] hover:bg-[#f3f3f8] rounded-full hidden sm:block"><Settings size={20} /></button>
           <div className="ml-2 pl-3 border-l border-[#e2e2e7] flex items-center space-x-2">
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" 
-              alt={user.fullName}
-              className="w-8 h-8 rounded-full object-cover border border-[#e2e2e7]"
-            />
+            <AccountAvatar />
           </div>
         </div>
       </header>

@@ -34,20 +34,19 @@ export default function Register() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-[#f9f9fe] relative overflow-hidden font-['Inter']">
+    <main className="min-h-screen flex items-center justify-center px-6 py-20 bg-[#f9f9fe] relative overflow-hidden font-['Inter']">
+      <button
+        type="button"
+        onClick={() => navigate('/')}
+        className="absolute top-6 right-6 z-20 text-[13px] font-medium text-[#0058bc] px-4 py-2 hover:bg-[#f3f3f8] rounded-full transition-colors"
+      >
+        Home
+      </button>
       <div className="absolute inset-0 z-0 opacity-20 pointer-events-none flex justify-center items-center">
         <div className="w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-[#d8e2ff] to-[#72fe88] blur-3xl mix-blend-multiply"></div>
       </div>
 
       <div className="relative z-10 w-full max-w-[480px] bg-white rounded-xl border border-[#e2e2e7]/60 shadow-[0_8px_20px_rgba(0,0,0,0.06)] p-8 flex flex-col gap-6">
-        <button
-          type="button"
-          onClick={() => navigate('/')}
-          className="self-start text-[13px] font-medium text-[#0058bc] px-4 py-2 hover:bg-[#f3f3f8] rounded-full transition-colors"
-        >
-          Home
-        </button>
-
         <div className="text-center">
           <h1 className="text-[28px] font-bold text-[#1a1c1f] mb-1">Create your account</h1>
           <p className="text-[15px] text-[#414755]">Join WiseTravel to start planning or managing trips.</p>

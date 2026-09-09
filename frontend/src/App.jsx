@@ -12,6 +12,8 @@ import LandingPage from './components/LandingPage';
 import OAuthCallback from './components/OAuthCallback';
 import TripEditor from './components/TripEditor';
 import Messages from './components/Messages';
+import NotificationProvider from './context/NotificationProvider';
+import PortalHeader, { NotificationToast } from './components/PortalHeader';
 import { Trips, Clients, Reports, History, Help } from './components/PortalPages';
 function Protected({ agentOnly = false }) {
   const { user, checking } = useContext(AuthContext);
@@ -28,12 +30,14 @@ function GuestOnly() {
   return signedInOnEntry && user?.token ? <Navigate to={portalPath(user.role)} replace /> : <Outlet />;
 }
 function Portal() {
-  const { logout } = useContext(AuthContext);
+  const location = useLocation();
+  const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  return <div className="min-h-screen bg-[#f9f9fe] font-['Inter']">
+  return <NotificationProvider key={user._id}><div className="min-h-screen bg-[#f9f9fe] font-['Inter']">
     <Sidebar onLogout={() => { logout(); navigate('/'); }} />
-    <div className="md:ml-64"><Outlet /></div>
-  </div>;
+    <div className="md:ml-64">{location.pathname !== '/agent' && <PortalHeader />}<Outlet /></div>
+    <NotificationToast />
+  </div></NotificationProvider>;
 }
 export default function App() {
   return <AuthProvider><BrowserRouter><Routes>

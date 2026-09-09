@@ -6,6 +6,14 @@ async function getMessages(req, res) {
   if (req.query.bookingId) filter.bookingId = req.query.bookingId;
   res.json(await Message.find(filter).sort({ createdAt: -1 }).limit(200));
 }
+async function getNotifications(req, res) {
+  const filter = { recipientId: req.user.id, unread: true };
+  const [count, messages] = await Promise.all([
+    Message.countDocuments(filter),
+    Message.find(filter).sort({ createdAt: -1 }).limit(20),
+  ]);
+  res.json({ count, messages });
+}
 async function sendMessage(req, res) {
   const booking = await Booking.findOne({ _id: req.body.bookingId, ...scope(req.user) });
   if (!booking) return res.status(404).json({ message: 'Trip not found' });
@@ -20,4 +28,4 @@ async function readMessage(req, res) {
   if (!message) return res.status(404).json({ message: 'Message not found' });
   res.json(message);
 }
-module.exports = { getMessages, sendMessage, readMessage };
+module.exports = { getMessages, getNotifications, sendMessage, readMessage };

@@ -81,3 +81,11 @@ Optional provider OAuth integration requires Google/Apple credentials and regist
 ## Login access rules
 
 Signed-out visitors can browse the home page and open login/registration. Trip creation, itineraries, messages, history, and agent pages require authentication. The home-page Login button opens /login. Agent credentials always redirect to /agent; traveler credentials open /trips or restore an allowed traveler page. Agent-only routes remain unavailable to travelers. Saved session data without a token is not accepted, and stored sessions are verified with the API before opening protected pages. Signing out in another tab clears the active session here too.
+
+## Message notifications and account icon
+
+- Login and registration Home buttons are placed at the top-right of the page, outside the form card.
+- Both authenticated portals include an unread-message bell and temporary in-app alerts. Notifications refresh every five seconds while the portal is open and refresh when the window regains focus.
+- New incoming messages notify the recipient; sending a message shows the sender a success confirmation. Opening a bell entry marks that message read and opens its trip conversation. The total count includes all unread incoming messages; the dropdown displays the latest 20.
+- Messages received while signed out remain unread and appear on the next portal visit. These are in-app notifications, not browser/OS push notifications.
+- The top-right account icon uses the initial of the signed-in email. Clicking it displays the account name, email, and role. Email/password authentication does not fetch an email provider's profile photograph.

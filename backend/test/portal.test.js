@@ -148,3 +148,22 @@ test('live intelligence degrades honestly when upstream providers fail', async (
     assert.equal(result.body.exchangeRate.rate, 'Unavailable');
   } finally { global.fetch = originalFetch; }
 });
+
+test('notifications are recipient-only in both directions and clear when read', async () => {
+  assert.equal((await request('/messages/notifications')).status, 401);
+  const agentBefore = (await request('/messages/notifications', 'agent')).body.count;
+  const travelerBefore = (await request('/messages/notifications', 'traveler')).body.count;
+  const outgoing = await request('/messages', 'traveler', 'POST', { bookingId: ids.booking, message: 'Notification test for agent' });
+  const agent = await request('/messages/notifications', 'agent');
+  assert.equal(agent.body.count, agentBefore + 1);
+  assert.ok(agent.body.messages.some(m => m._id === outgoing.body._id));
+  assert.equal((await request('/messages/notifications', 'traveler')).body.count, travelerBefore);
+  assert.equal((await request('/messages/notifications', 'otherAgent')).body.count, 0);
+  await request('/messages/' + outgoing.body._id + '/read', 'agent', 'PATCH');
+  assert.equal((await request('/messages/notifications', 'agent')).body.count, agentBefore);
+  const reply = await request('/messages', 'agent', 'POST', { bookingId: ids.booking, message: 'Notification test for traveler' });
+  assert.equal((await request('/messages/notifications', 'traveler')).body.count, travelerBefore + 1);
+  assert.equal((await request('/messages/notifications', 'otherTraveler')).body.count, 0);
+  await request('/messages/' + reply.body._id + '/read', 'traveler', 'PATCH');
+  assert.equal((await request('/messages/notifications', 'traveler')).body.count, travelerBefore);
+});
