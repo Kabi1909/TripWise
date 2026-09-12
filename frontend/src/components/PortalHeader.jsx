@@ -28,7 +28,7 @@ export function NotificationBell() {
       await notifications.markRead(message._id);
       ref.current.open = false;
       setActionError('');
-      navigate('/messages?trip=' + message.bookingId);
+      navigate(message.kind === 'trip-allocation' ? '/trips/' + message.bookingId : '/messages?trip=' + message.bookingId);
     } catch (err) { setActionError(err.message); }
   };
   return <details ref={ref} className="relative" onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.open = false; }} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false; }}>
@@ -41,9 +41,9 @@ export function NotificationBell() {
       {(notifications.error || actionError) && <p role="alert" className="p-3 text-[13px] text-[#ba1a1a]">{actionError || notifications.error}</p>}
       <div className="max-h-72 overflow-y-auto">
         {notifications.loading && <p className="p-4 text-[13px] text-[#414755]">Loading notifications…</p>}
-        {!notifications.loading && !notifications.messages.length && <p className="p-4 text-[13px] text-[#414755]">No unread messages.</p>}
+        {!notifications.loading && !notifications.messages.length && <p className="p-4 text-[13px] text-[#414755]">No unread notifications.</p>}
         {notifications.messages.map(message => <button key={message._id} type="button" onClick={() => openMessage(message)} className="block w-full text-left p-3 border-b border-[#e2e2e7] hover:bg-[#f3f3f8]">
-          <span className="block text-[13px] font-semibold">{message.senderName}</span>
+          <span className="block text-[13px] font-semibold">{message.kind === 'trip-allocation' ? 'New trip request · ' + message.senderName : message.senderName}</span>
           <span className="block text-[13px] text-[#414755] truncate">{message.message}</span>
           <time className="text-[11px] text-[#717786]">{new Date(message.createdAt).toLocaleString()}</time>
         </button>)}
@@ -60,7 +60,7 @@ export function NotificationToast() {
       <div className="flex gap-3 justify-between items-start"><p className="text-[13px] font-semibold text-[#1a1c1f]">{toast.title}</p>
         <button type="button" aria-label="Dismiss notification" onClick={dismiss} className="text-[#414755] rounded-full hover:bg-[#f3f3f8]"><X size={16} /></button></div>
       <p className="text-[13px] text-[#414755] truncate mt-2">{toast.text}</p>
-      <button type="button" className="text-[13px] text-[#0058bc] mt-2" onClick={() => { dismiss(); navigate('/messages' + (toast.message ? '?trip=' + toast.message.bookingId : '')); }}>View message</button>
+      <button type="button" className="text-[13px] text-[#0058bc] mt-2" onClick={() => { dismiss(); navigate(toast.message?.kind === 'trip-allocation' ? '/trips/' + toast.message.bookingId : '/messages' + (toast.message ? '?trip=' + toast.message.bookingId : '')); }}>{toast.message?.kind === 'trip-allocation' ? 'View trip' : 'View message'}</button>
     </div>}
   </div>;
 }
