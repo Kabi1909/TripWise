@@ -216,3 +216,30 @@ test('agent-created and legacy bookings do not create allocation alerts', async 
   assert.equal(invalid.status, 400);
   assert.equal((await request('/messages/notifications', 'agent')).body.count, before);
 });
+
+test('mixed notification feed limits entries while counting every unread item', async () => {
+  const before = (await request('/messages/notifications', 'otherAgent')).body.count;
+  const template = fixtures.stores.Booking[0].toObject();
+  delete template._id;
+  for (let i = 0; i < 22; i++) {
+    fixtures.add('Booking', { ...template, agentId: ids.otherAgent, allocationUnread: true,
+      createdAt: new Date(Date.UTC(2030, 0, 1, 0, i)) });
+  }
+  const message = fixtures.add('Message', {
+    bookingId: ids.booking, senderId: ids.traveler, recipientId: ids.otherAgent,
+    senderName: 'Test Traveler', message: 'Latest message', createdAt: new Date('2031-01-01'),
+  });
+  const feed = (await request('/messages/notifications', 'otherAgent')).body;
+  assert.equal(feed.count, before + 23);
+  assert.equal(feed.messages.length, 20);
+  assert.equal(feed.messages[0]._id, String(message._id));
+  assert.equal(feed.messages[0].kind, 'message');
+  assert.equal(feed.messages[1].kind, 'trip-allocation');
+  const allocation = feed.messages[1];
+  await request('/bookings/' + allocation.bookingId + '/allocation/read', 'otherAgent', 'PATCH');
+  const after = (await request('/messages/notifications', 'otherAgent')).body;
+  assert.equal(after.count, feed.count - 1);
+  assert.equal(after.messages.length, 20);
+  assert.ok(after.messages.some(item => item._id === String(message._id)));
+  assert.ok(!after.messages.some(item => item._id === allocation._id));
+});
