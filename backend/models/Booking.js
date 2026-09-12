@@ -16,6 +16,8 @@ const bookingSchema = new mongoose.Schema({
   destination: { type: String, required: true },
   destinationId: { type: String, enum: ['colombo', 'mirissa-galle', 'sigiriya', 'ella'], required: true },
   packageName: { type: String, default: '' },
+  // Set only for new traveler requests; legacy trips do not generate alerts.
+  allocationUnread: { type: Boolean, default: false },
   dates: String,
   startDate: { type: String, required: true },
   endDate: { type: String, required: true },
