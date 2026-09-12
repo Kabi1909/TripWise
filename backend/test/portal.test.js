@@ -186,3 +186,33 @@ test('new traveler request notifies only the selected agent and ignores client f
   assert.ok(!(await request('/messages', 'otherAgent')).body.some(item => item._id === notificationId));
   assert.ok((await request('/messages/notifications', 'otherAgent')).body.messages.some(item => item._id === notificationId));
 });
+
+test('allocation acknowledgement requires ownership and survives subsequent edits', async () => {
+  const created = await request('/bookings', 'traveler', 'POST', { ...draft, agentId: ids.agent });
+  const id = created.body._id;
+  const path = '/bookings/' + id + '/allocation/read';
+  assert.equal((await request(path, null, 'PATCH')).status, 401);
+  assert.equal((await request(path, 'traveler', 'PATCH')).status, 403);
+  assert.equal((await request(path, 'otherAgent', 'PATCH')).status, 404);
+  const before = (await request('/messages/notifications', 'agent')).body.count;
+  assert.equal((await request(path, 'agent', 'PATCH')).status, 200);
+  assert.equal((await request('/messages/notifications', 'agent')).body.count, before - 1);
+  assert.equal((await request(path, 'agent', 'PATCH')).status, 200);
+  assert.equal((await request('/messages/notifications', 'agent')).body.count, before - 1);
+  assert.equal((await request('/bookings/' + id, 'agent', 'PATCH', { allocationUnread: true, highlightTitle: 'Reviewed trip' })).status, 200);
+  assert.equal((await request('/bookings/' + id, 'agent')).body.allocationUnread, false);
+});
+
+test('agent-created and legacy bookings do not create allocation alerts', async () => {
+  const before = (await request('/messages/notifications', 'agent')).body.count;
+  const created = await request('/bookings', 'agent', 'POST', {
+    ...draft, travelerEmail: 'traveler@example.test', status: 'Confirmed', amount: 100, schedule: [], allocationUnread: true,
+  });
+  assert.equal(created.status, 201);
+  assert.equal(created.body.allocationUnread, false);
+  assert.equal((await request('/messages/notifications', 'agent')).body.count, before);
+  assert.ok(!(await request('/messages/notifications', 'agent')).body.messages.some(item => item._id === 'allocation:' + ids.booking));
+  const invalid = await request('/bookings', 'traveler', 'POST', { ...draft, agentId: ids.otherTraveler });
+  assert.equal(invalid.status, 400);
+  assert.equal((await request('/messages/notifications', 'agent')).body.count, before);
+});
