@@ -353,3 +353,21 @@ See [IMPLEMENTATION.md](IMPLEMENTATION.md) for additional behavior and optional 
 ## License
 
 No repository-wide LICENSE file is currently provided. The backend package metadata declares ISC; confirm the intended project license and add the corresponding LICENSE file before distributing the project under a specific license.
+
+
+## Trip allocation notifications
+
+When a traveler submits a customized trip and selects an agent, the new booking stores an unread allocation flag in the same database write. The selected agent receives a New trip request entry in the existing notification bell and an in-app toast on the next notification refresh (approximately five seconds while the portal is open).
+
+- Only the assigned agent can see or acknowledge the allocation alert.
+- Opening its bell entry marks the allocation read and opens the trip itinerary.
+- The toast's View trip button opens the itinerary; the bell entry remains unread until acknowledged.
+- Requests made while the agent is signed out remain unread for their next portal visit.
+- Message and allocation alerts share the bell count and the latest-20 dropdown.
+- Existing bookings and trips created by agents do not generate allocation alerts.
+- Editing a trip or repeatedly acknowledging an alert does not generate duplicates.
+- These alerts are in-app notifications, not email or operating-system push messages.
+
+The authenticated GET /api/messages/notifications feed includes a kind field identifying message or trip-allocation entries. Allocation IDs use the allocation: prefix. Assigned agents acknowledge them using PATCH /api/bookings/:id/allocation/read. Ordinary chat message endpoints retain their existing behavior.
+
+Verification: backend integration tests cover recipient isolation, spoofed input, unread persistence, acknowledgment permissions, repeat acknowledgments, legacy bookings, agent-created bookings, mixed-feed ordering, and total unread counts beyond the dropdown limit.

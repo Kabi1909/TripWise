@@ -89,3 +89,21 @@ Signed-out visitors can browse the home page and open login/registration. Trip c
 - New incoming messages notify the recipient; sending a message shows the sender a success confirmation. Opening a bell entry marks that message read and opens its trip conversation. The total count includes all unread incoming messages; the dropdown displays the latest 20.
 - Messages received while signed out remain unread and appear on the next portal visit. These are in-app notifications, not browser/OS push notifications.
 - The top-right account icon uses the initial of the signed-in email. Clicking it displays the account name, email, and role. Email/password authentication does not fetch an email provider's profile photograph.
+
+
+## Trip allocation notifications
+
+When a traveler submits a customized trip and selects an agent, the new booking stores an unread allocation flag in the same database write. The selected agent receives a New trip request entry in the existing notification bell and an in-app toast on the next notification refresh (approximately five seconds while the portal is open).
+
+- Only the assigned agent can see or acknowledge the allocation alert.
+- Opening its bell entry marks the allocation read and opens the trip itinerary.
+- The toast's View trip button opens the itinerary; the bell entry remains unread until acknowledged.
+- Requests made while the agent is signed out remain unread for their next portal visit.
+- Message and allocation alerts share the bell count and the latest-20 dropdown.
+- Existing bookings and trips created by agents do not generate allocation alerts.
+- Editing a trip or repeatedly acknowledging an alert does not generate duplicates.
+- These alerts are in-app notifications, not email or operating-system push messages.
+
+The authenticated GET /api/messages/notifications feed includes a kind field identifying message or trip-allocation entries. Allocation IDs use the allocation: prefix. Assigned agents acknowledge them using PATCH /api/bookings/:id/allocation/read. Ordinary chat message endpoints retain their existing behavior.
+
+Verification: backend integration tests cover recipient isolation, spoofed input, unread persistence, acknowledgment permissions, repeat acknowledgments, legacy bookings, agent-created bookings, mixed-feed ordering, and total unread counts beyond the dropdown limit.
