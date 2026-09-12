@@ -12,7 +12,7 @@ async function createBooking(req, res) {
     : await User.findById(req.user.id);
   const assignedAgent = agent ? await User.findById(req.user.id) : await User.findOne({ _id: req.body.agentId, role: 'Travel Agent' });
   if (!traveler || !assignedAgent) fail('Choose an agent and an existing traveler account');
-  const booking = await Booking.create({ ...input, travelerId: traveler._id, agentId: assignedAgent._id,
+  const booking = await Booking.create({ ...input, allocationUnread: !agent, travelerId: traveler._id, agentId: assignedAgent._id,
     clientName: traveler.fullName, clientInitials: traveler.fullName.split(/\s+/).map(s => s[0]).slice(0, 2).join('').toUpperCase() });
   res.status(201).json(booking);
 }
