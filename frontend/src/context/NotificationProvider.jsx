@@ -24,9 +24,9 @@ export default function NotificationProvider({ children }) {
         const latest = data.messages[0];
         const timestamp = latest ? new Date(latest.createdAt).getTime() : 0;
         if (!initialized.current && data.count > 0) {
-          setToast({ id: 'unread-summary', title: 'Unread messages', text: 'You have ' + data.count + ' unread message' + (data.count === 1 ? '.' : 's.'), message: latest });
+          setToast({ id: 'unread-summary', title: 'Unread notifications', text: 'You have ' + data.count + ' unread notification' + (data.count === 1 ? '.' : 's.'), message: latest });
         } else if (initialized.current && latest && !seen.current.has(latest._id) && timestamp >= newestTime.current) {
-          setToast({ id: latest._id, title: 'New message from ' + latest.senderName, text: latest.message, message: latest });
+          setToast({ id: latest._id, title: latest.kind === 'trip-allocation' ? 'New trip request' : 'New message from ' + latest.senderName, text: latest.message, message: latest });
         }
         initialized.current = true;
         newestTime.current = Math.max(newestTime.current, timestamp);
@@ -50,7 +50,10 @@ export default function NotificationProvider({ children }) {
     return () => clearTimeout(timer);
   }, [toast]);
   const markRead = useCallback(async id => {
-    await api('/messages/' + id + '/read', { method: 'PATCH' });
+    const path = id.startsWith('allocation:')
+      ? '/bookings/' + id.slice('allocation:'.length) + '/allocation/read'
+      : '/messages/' + id + '/read';
+    await api(path, { method: 'PATCH' });
     setInbox(previous => ({
       count: Math.max(0, previous.count - (previous.messages.some(m => m._id === id) ? 1 : 0)),
       messages: previous.messages.filter(m => m._id !== id),
