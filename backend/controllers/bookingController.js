@@ -29,8 +29,15 @@ async function updateBooking(req, res) {
   await booking.save();
   res.json(booking);
 }
+async function readAllocation(req, res) {
+  const booking = await Booking.findOneAndUpdate(
+    { _id: req.params.id, agentId: req.user.id },
+    { allocationUnread: false }, { new: true });
+  if (!booking) return res.status(404).json({ message: 'Trip not found' });
+  res.json({ _id: 'allocation:' + booking._id, unread: false });
+}
 async function getMetrics(req, res) {
   const bookings = await Booking.find(scope(req.user)).lean();
   res.json({ ...metrics(bookings), updatedAt: new Date(), currency: 'USD' });
 }
-module.exports = { getBookings, createBooking, getBooking, updateBooking, getMetrics };
+module.exports = { getBookings, createBooking, getBooking, updateBooking, getMetrics, readAllocation };
