@@ -167,3 +167,22 @@ test('notifications are recipient-only in both directions and clear when read', 
   await request('/messages/' + reply.body._id + '/read', 'traveler', 'PATCH');
   assert.equal((await request('/messages/notifications', 'traveler')).body.count, travelerBefore);
 });
+
+test('new traveler request notifies only the selected agent and ignores client flags', async () => {
+  const result = await request('/bookings', 'traveler', 'POST', {
+    ...draft, agentId: ids.otherAgent, allocationUnread: false,
+  });
+  assert.equal(result.status, 201);
+  const notificationId = 'allocation:' + result.body._id;
+  const feed = (await request('/messages/notifications', 'otherAgent')).body;
+  const alert = feed.messages.find(item => item._id === notificationId);
+  assert.ok(alert);
+  assert.equal(alert.kind, 'trip-allocation');
+  assert.equal(alert.bookingId, result.body._id);
+  assert.match(alert.message, /Test Traveler/);
+  for (const actor of ['agent', 'traveler', 'otherTraveler']) {
+    assert.ok(!(await request('/messages/notifications', actor)).body.messages.some(item => item._id === notificationId));
+  }
+  assert.ok(!(await request('/messages', 'otherAgent')).body.some(item => item._id === notificationId));
+  assert.ok((await request('/messages/notifications', 'otherAgent')).body.messages.some(item => item._id === notificationId));
+});
